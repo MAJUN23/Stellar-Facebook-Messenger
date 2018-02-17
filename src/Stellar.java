@@ -44,9 +44,9 @@ class Stellar{
 
         Network.useTestNetwork();
         Server server = new Server("https://horizon-testnet.stellar.org");
-        String secretSourceSeed = "SBUVSDJFSK3457KNNUVWEJZ4MHKJ27XKMKYSV6GL3QWFTO5LP2GBKCOI";
-        String destinationAccountId = "GDETWWDUX4AEC3ZXQ4Q7XISYB2ZTKWCGWETLUIALA2Y5RAG2E7SDWSCC";
 
+        String secretSourceSeed = "SBSNCCJEXSYO4YFAYJOCQBOXTUTAPFJJGK6G6SLAIXQTON5JFKFHGR64";
+        String destinationAccountId = "GDETWWDUX4AEC3ZXQ4Q7XISYB2ZTKWCGWETLUIALA2Y5RAG2E7SDWSCC";
         KeyPair source = KeyPair.fromSecretSeed(secretSourceSeed);
         KeyPair destination = KeyPair.fromAccountId(destinationAccountId);
 
@@ -54,11 +54,23 @@ class Stellar{
         System.out.println("Sender Account Info: ");
         getAccountInfo(server, source);
 
+        // Get balance account info for receiver
+        System.out.println("Receiver Account Info: ");
+        getAccountInfo(server, destination);
+
+        // Send Lumens
+        sendLumens(source, destination, server, "20");
+
+        // Get updated balance account info for sender
+        System.out.println("Sender Account Info: ");
+        getAccountInfo(server, source);
+
+        // Get updated balance account info for receiver
         System.out.println("Receiver Account Info: ");
         getAccountInfo(server, destination);
     }
 
-    public static void sendLumens(KeyPair source, KeyPair destination, Server server) throws Exception {
+    public static void sendLumens(KeyPair source, KeyPair destination, Server server, String amount) throws Exception {
         // Checks if destination account exists
         // If account does not exist HttpResponseException will be thrown
         server.accounts().account(destination);
@@ -72,7 +84,7 @@ class Stellar{
         Transaction.Builder transactionBuilder = new Transaction.Builder(sourceAccount);
         // AssetTypeNative represents the Stellar Lumens Native asset
         PaymentOperation payment = new PaymentOperation.Builder(
-                destination, new AssetTypeNative(), "10").build();
+                destination, new AssetTypeNative(), amount).build();
 
         // Add metadata to transaction (optional)
         transactionBuilder.addMemo(Memo.text("Test transaction"));
@@ -93,7 +105,7 @@ class Stellar{
             } catch (Exception e) {
                 System.out.println("Something went wrong! Retrying...");
                 System.out.println(e.getMessage());
-                // TODO: Check for actual response from Horizon server. Resubmit if no reponse
+                // TODO: Check for actual response from Horizon server. Resubmit if no response
             }
 
         }
